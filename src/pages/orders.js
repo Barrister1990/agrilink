@@ -1,8 +1,10 @@
 import { supabase } from "@/lib/supabaseClient";
-import { AlertCircle, ArrowLeft, Check, ChevronLeft, ChevronRight, Package, ShoppingBag, Truck, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, Check, ChevronLeft, ChevronRight, LogIn, Package, ShoppingBag, Truck, X } from "lucide-react";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 const Orders = () => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("ongoing");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -11,6 +13,7 @@ const Orders = () => {
   const [cancellingOrder, setCancellingOrder] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [cancelError, setCancelError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,17 +33,22 @@ const Orders = () => {
     return statusMap[status.toLowerCase()] || status;
   };
 
-  // Fetch orders from Supabase
+  // Check authentication status and fetch orders
   useEffect(() => {
-    const fetchOrders = async () => {
+    const checkAuthAndFetchOrders = async () => {
       try {
         setLoading(true);
         
         // Get current user
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (!session?.user) {
-          throw new Error("User not authenticated");
+          setIsAuthenticated(false);
+          setLoading(false);
+          return;
         }
+        
+        setIsAuthenticated(true);
         
         // Fetch orders
         const { data: ordersData, error: ordersError } = await supabase
@@ -115,8 +123,47 @@ const Orders = () => {
       }
     };
     
-    fetchOrders();
+    checkAuthAndFetchOrders();
   }, []);
+  
+  // Handle navigation to auth page
+  const navigateToAuth = () => {
+    router.push('/auth/signup');
+  };
+
+  // Render unauthenticated state
+  const renderUnauthenticatedState = () => {
+    return (
+      <div className="max-w-md mx-auto text-center py-16 px-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <LogIn className="w-8 h-8 text-gray-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Sign in to view your orders</h2>
+          <p className="text-gray-600 mb-6">
+            Please log in or create an account to view your order history and track current orders.
+          </p>
+          <div className="flex flex-col space-y-3">
+            <button
+              onClick={navigateToAuth}
+              className="w-full py-3 px-4 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => router.push('/auth/signup')}
+              className="w-full py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Create Account
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mt-6">
+            Already have items in your cart? Your cart will be saved when you sign in.
+          </p>
+        </div>
+      </div>
+    );
+  };
   
   // Filter orders based on active tab
   const filteredOrders = orders.filter(order => {
@@ -498,6 +545,29 @@ const Orders = () => {
     setCurrentPage(1); // Reset to first page when changing tabs
   };
 
+  // If authentication state is still being determined, show loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex justify-center">
+        <div className="animate-pulse flex space-x-4">
+          <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+          <div className="flex-1 space-y-4 py-1">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is not authenticated, show sign-in prompt
+  if (isAuthenticated === false) {
+    return renderUnauthenticatedState();
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Title */}
@@ -671,9 +741,8 @@ const Orders = () => {
                 
                 {selectedOrder.formattedStatus === "Delivered" && (
                   <button
-                    className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    Reorder
+                    className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    Buy Again
                   </button>
                 )}
                 
@@ -681,14 +750,11 @@ const Orders = () => {
                   <button
                     onClick={() => handleCancelOrder(selectedOrder.id)}
                     disabled={cancellingOrder}
-                    className={`px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 ${
-                      cancellingOrder ? 'opacity-70 cursor-not-allowed' : ''
+                    className={`px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors ${
+                      cancellingOrder ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
-                    {cancellingOrder ? 'Cancelling...' : 'Cancel Order'}
-                    {cancellingOrder && (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    )}
+                    {cancellingOrder ? "Cancelling..." : "Cancel Order"}
                   </button>
                 )}
               </div>
