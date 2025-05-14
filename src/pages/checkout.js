@@ -1,7 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import useCartStore from "@/store/cartStore";
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, CreditCardIcon, TruckIcon, UserIcon } from "@heroicons/react/24/outline";
-import PaystackPop from '@paystack/inline-js';
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from 'react-hot-toast';
@@ -55,12 +54,6 @@ const CheckoutPage = () => {
   const [momoInfo, setMomoInfo] = useState({
     phoneNumber: "",
     provider: "mtn"
-  });
-  const [cardInfo, setCardInfo] = useState({
-    cardNumber: "",
-    nameOnCard: "",
-    expiryDate: "",
-    cvv: ""
   });
   
   // Calculate order summary
@@ -132,11 +125,6 @@ const CheckoutPage = () => {
   const handleMomoChange = (e) => {
     const { name, value } = e.target;
     setMomoInfo(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleCardChange = (e) => {
-    const { name, value } = e.target;
-    setCardInfo(prev => ({ ...prev, [name]: value }));
   };
   
   // Proceed to next step
@@ -247,7 +235,7 @@ const CheckoutPage = () => {
   };
 
   // Save order to Supabase
-  const saveOrderToSupabase = async (reference, paymentStatus = 'Ondelivery') => {
+  const saveOrderToSupabase = async (reference, paymentStatus = 'pending') => {
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
     if (!user) return null;
@@ -278,7 +266,7 @@ const CheckoutPage = () => {
           shipping_fee: shipping,
           total_amount: total,
           payment_method: paymentMethod,
-          payment_status: paymentStatus, // Set payment status from parameter
+          payment_status: paymentStatus,
           payment_reference: reference || null,
           notes: shippingInfo.additionalInfo || null
         });
@@ -303,101 +291,6 @@ const CheckoutPage = () => {
     }
   };
 
-  const configurePaystackPayment = (email, amount, channels = []) => {
-    return {
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-      email: email,
-      amount: Math.round(amount * 100), // Convert to smallest currency unit (pesewas)
-      currency: 'GHS',
-      ref: `order_${Date.now()}`,
-      channels: channels.length > 0 ? channels : undefined,
-      onSuccess: async (transaction) => {
-        // Process order only after successful payment
-        await processSuccessfulPayment(transaction);
-      },
-      onCancel: () => {
-        // Handle when user cancels
-        toast.error("Payment cancelled. Your order has not been placed.");
-        setIsProcessing(false);
-      }
-    };
-  };
-
-  const handlePaystackCardPayment = () => {
-    // Validate form data before initiating payment
-    if (!shippingInfo.fullName || !shippingInfo.phoneNumber || !shippingInfo.address || 
-        !shippingInfo.city || !shippingInfo.region || !shippingInfo.email) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-    
-    setIsProcessing(true);
-    
-    try {
-      // Initialize Paystack
-      const paystack = new PaystackPop();
-      
-      // Configure the card payment
-      const config = configurePaystackPayment(
-        shippingInfo.email, 
-        total,
-        ['card'] // Specify card channel only
-      );
-      
-      // Open payment popup
-      paystack.newTransaction(config);
-    } catch (error) {
-      console.error("Error initializing Paystack card payment:", error);
-      toast.error("Failed to initialize payment. Please try again.");
-      setIsProcessing(false);
-    }
-  };
-
-  const handlePaystackMomoPayment = () => {
-    // Validate form data before initiating payment
-    if (!shippingInfo.fullName || !shippingInfo.phoneNumber || !shippingInfo.address || 
-        !shippingInfo.city || !shippingInfo.region || !shippingInfo.email || 
-        !momoInfo.phoneNumber || !momoInfo.provider) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-    
-    setIsProcessing(true);
-    
-    try {
-      // Initialize Paystack
-      const paystack = new PaystackPop();
-      
-      // Configure the MoMo payment
-      const config = configurePaystackPayment(
-        shippingInfo.email, 
-        total,
-        ['mobile_money'] // Use 'mobile_money' as the channel for all providers
-      );
-      
-      // Add mobile money specific details
-      config.phone = momoInfo.phoneNumber;
-      
-      // Add mobile money provider as metadata
-      config.metadata = {
-        custom_fields: [
-          {
-            display_name: "Mobile Money Provider",
-            variable_name: "momo_provider",
-            value: momoInfo.provider
-          }
-        ]
-      };
-      
-      // Open payment popup
-      paystack.newTransaction(config);
-    } catch (error) {
-      console.error("Error initializing Paystack mobile money payment:", error);
-      toast.error("Failed to initialize payment. Please try again.");
-      setIsProcessing(false);
-    }
-  };
-  
   // Process successful payment
   const processSuccessfulPayment = async (transaction) => {
     try {
@@ -422,6 +315,89 @@ const CheckoutPage = () => {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  // Initialize Paystack payment
+  const initializePaystack = (channels = ['card']) => {
+    // Validate form data before initiating payment
+    if (!shippingInfo.fullName || !shippingInfo.phoneNumber || !shippingInfo.address || 
+        !shippingInfo.city || !shippingInfo.region || !shippingInfo.email) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      // Make sure the Paystack script is loaded
+      if (window.PaystackPop) {
+        const paystackReference = `order_${Date.now()}`;
+        
+        // Configure the payment
+        const paystackConfig = {
+          key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+          email: shippingInfo.email,
+          amount: Math.round(total * 100), // Convert to smallest currency unit (pesewas)
+          currency: 'GHS',
+          ref: paystackReference,
+          channels: channels,
+          
+          // For mobile money, add these if needed
+          ...(paymentMethod === 'momo' && {
+            phone: momoInfo.phoneNumber,
+            metadata: {
+              custom_fields: [
+                {
+                  display_name: "Mobile Money Provider",
+                  variable_name: "momo_provider",
+                  value: momoInfo.provider
+                }
+              ]
+            }
+          }),
+          
+          callback: function(response) {
+            // Process order only after successful payment
+            processSuccessfulPayment({
+              reference: response.reference,
+              status: 'success',
+              transaction: response.transaction,
+              message: 'Payment complete!'
+            });
+          },
+          onClose: function() {
+            // Handle when user cancels
+            toast.error("Payment cancelled. Your order has not been placed.");
+            setIsProcessing(false);
+          }
+        };
+        
+        // Open Paystack popup
+        const handler = window.PaystackPop.setup(paystackConfig);
+        handler.openIframe();
+      } else {
+        toast.error("Payment system is not available. Please try again later.");
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error("Error initializing Paystack payment:", error);
+      toast.error("Failed to initialize payment. Please try again.");
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePaystackCardPayment = () => {
+    initializePaystack(['card']);
+  };
+
+  const handlePaystackMomoPayment = () => {
+    // Validate mobile money fields first
+    if (!momoInfo.phoneNumber || !momoInfo.provider) {
+      toast.error("Please enter your mobile money details");
+      return;
+    }
+    
+    initializePaystack(['mobile_money']);
   };
   
   const submitOrder = async (e) => {
@@ -467,6 +443,7 @@ const CheckoutPage = () => {
       }
     }
   };
+  
   // If cart is empty and order not complete, redirect to home
   useEffect(() => {
     if (cart.length === 0 && !orderComplete) {
@@ -732,310 +709,229 @@ const CheckoutPage = () => {
                   )}
                   
                   
- {/* Step 3: Payment */}
- {currentStep === 3 && (
+{/* Step 3: Payment */}
+{currentStep === 3 && (
   <div>
     <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment Method</h2>
     <div className="space-y-4">
-      {/* Paystack Card Option */}
+      {/* Payment with Card */}
       <div 
-        className={`border rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === 'paystack' ? 'border-[#F68B1E] bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+        className={`border rounded-lg p-4 cursor-pointer ${paymentMethod === 'paystack' ? 'border-[#F68B1E] bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
         onClick={() => setPaymentMethod('paystack')}
       >
-        <div className="flex items-center">
-          <div className={`h-5 w-5 rounded-full mr-3 flex-shrink-0 ${paymentMethod === 'paystack' ? 'bg-[#F68B1E]' : 'border border-gray-300'}`}></div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 mr-3">
-              <img src="/paystack-logo.png" alt="Paystack" className="w-full h-full object-contain" onError={(e) => e.target.src = "https://via.placeholder.com/40?text=Paystack"} />
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-800">Credit/Debit Card</h3>
-              <p className="text-sm text-gray-500">Pay securely with your card via Paystack</p>
+        <div className="flex items-start">
+          <div className={`h-5 w-5 rounded-full flex-shrink-0 mr-3 mt-0.5 ${paymentMethod === 'paystack' ? 'bg-[#F68B1E]' : 'border border-gray-300'}`}></div>
+          <div>
+            <h3 className="font-medium text-gray-800">Pay with Card</h3>
+            <p className="text-sm text-gray-500 mt-1">Secure payment via Paystack</p>
+            <div className="flex space-x-2 mt-2">
+              <img src="/visa.png" alt="Visa" className="h-6" />
+              <img src="/mastercard.jpeg" alt="Mastercard" className="h-6" />
+              <img src="/verve.png" alt="Verve" className="h-6" />
             </div>
           </div>
         </div>
       </div>
       
-      {/* Paystack Mobile Money Option */}
+      {/* Mobile Money */}
       <div 
-        className={`border rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === 'momo' ? 'border-[#F68B1E] bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+        className={`border rounded-lg p-4 cursor-pointer ${paymentMethod === 'momo' ? 'border-[#F68B1E] bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
         onClick={() => setPaymentMethod('momo')}
       >
-        <div className="flex items-center">
-          <div className={`h-5 w-5 rounded-full mr-3 flex-shrink-0 ${paymentMethod === 'momo' ? 'bg-[#F68B1E]' : 'border border-gray-300'}`}></div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 mr-3">
-              <img src="/paystack-momo-logo.png" alt="Mobile Money" className="w-full h-full object-contain" onError={(e) => e.target.src = "https://via.placeholder.com/40?text=MoMo"} />
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-800">Mobile Money</h3>
-              <p className="text-sm text-gray-500">Pay with MTN, Vodafone or AirtelTigo Mobile Money via Paystack</p>
+        <div className="flex items-start">
+          <div className={`h-5 w-5 rounded-full flex-shrink-0 mr-3 mt-0.5 ${paymentMethod === 'momo' ? 'bg-[#F68B1E]' : 'border border-gray-300'}`}></div>
+          <div className="w-full">
+            <h3 className="font-medium text-gray-800">Mobile Money</h3>
+            <p className="text-sm text-gray-500 mt-1">Pay with MTN, Vodafone or AirtelTigo mobile money</p>
+            
+            {paymentMethod === 'momo' && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Provider</label>
+                  <select
+                    name="provider"
+                    value={momoInfo.provider}
+                    onChange={handleMomoChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#F68B1E] focus:border-[#F68B1E]"
+                  >
+                    <option value="mtn">MTN Mobile Money</option>
+                    <option value="vodafone">Vodafone Cash</option>
+                    <option value="airtel">AirtelTigo Money</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Money Number</label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={momoInfo.phoneNumber}
+                    onChange={handleMomoChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#F68B1E] focus:border-[#F68B1E]"
+                    placeholder="e.g. 024xxxxxxx"
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="flex space-x-2 mt-2">
+              <img src="/mtn-momo.png" alt="MTN Mobile Money" className="h-6" />
+              <img src="/vodafone-cash.png" alt="Vodafone Cash" className="h-6" />
+              <img src="/airteltigo-money.jpeg" alt="AirtelTigo Money" className="h-6" />
             </div>
           </div>
         </div>
-        
-        {paymentMethod === 'momo' && (
-          <div className="mt-4 pl-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Money Number*</label>
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  placeholder="e.g. 0241234567"
-                  value={momoInfo.phoneNumber}
-                  onChange={handleMomoChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#F68B1E] focus:border-[#F68B1E]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Provider*</label>
-                <select
-                  name="provider"
-                  value={momoInfo.provider}
-                  onChange={handleMomoChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#F68B1E] focus:border-[#F68B1E]"
-                  required
-                >
-                  <option value="mtn">MTN Mobile Money</option>
-                  <option value="vodafone">Vodafone Cash</option>
-                  <option value="airtel">AirtelTigo Money</option>
-                </select>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              You will receive a prompt on your phone to confirm the payment.
-            </p>
-          </div>
-        )}
       </div>
       
-      {/* Cash on Delivery Option */}
+      {/* Cash on Delivery */}
       <div 
-        className={`border rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#F68B1E] bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+        className={`border rounded-lg p-4 cursor-pointer ${paymentMethod === 'cod' ? 'border-[#F68B1E] bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
         onClick={() => setPaymentMethod('cod')}
       >
-        <div className="flex items-center">
-          <div className={`h-5 w-5 rounded-full mr-3 flex-shrink-0 ${paymentMethod === 'cod' ? 'bg-[#F68B1E]' : 'border border-gray-300'}`}></div>
+        <div className="flex items-start">
+          <div className={`h-5 w-5 rounded-full flex-shrink-0 mr-3 mt-0.5 ${paymentMethod === 'cod' ? 'bg-[#F68B1E]' : 'border border-gray-300'}`}></div>
           <div>
             <h3 className="font-medium text-gray-800">Cash on Delivery</h3>
-            <p className="text-sm text-gray-500">Pay when you receive your order</p>
-            <p className="text-xs text-gray-500 mt-1">Available only for orders below ₵500</p>
+            <p className="text-sm text-gray-500 mt-1">Pay with cash when your order is delivered</p>
+            <p className="text-xs text-yellow-600 mt-2">Note: Available only in select areas of Greater Accra and Kumasi</p>
           </div>
-        </div>
-      </div>
-      
-      {/* Order Total Summary */}
-      <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-medium text-gray-800 mb-2">Order Summary</h3>
-        <div className="flex justify-between mb-2">
-          <span className="text-gray-600">Subtotal</span>
-          <span className="font-medium">₵{subtotal.toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between mb-2">
-          <span className="text-gray-600">Shipping</span>
-          <span className="font-medium">₵{shipping.toFixed(2)}</span>
-        </div>
-        <div className="border-t border-gray-200 my-2 pt-2 flex justify-between">
-          <span className="text-gray-800 font-medium">Total</span>
-          <span className="text-xl font-bold text-[#F68B1E]">₵{total.toFixed(2)}</span>
         </div>
       </div>
     </div>
   </div>
 )}
-  {/* Step 4: Confirmation */}
-  {currentStep === 4 && (
-  <div className="text-center py-6">
-    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+
+{/* Step 4: Order Confirmation */}
+{currentStep === 4 && orderComplete && (
+  <div className="text-center py-8">
+    <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
       <CheckIcon className="h-8 w-8 text-green-500" />
     </div>
-    <h2 className="text-2xl font-bold text-gray-800 mb-2">Thank You for Your Order!</h2>
+    <h2 className="text-2xl font-bold text-gray-800 mb-2">Thank You For Your Order!</h2>
     <p className="text-gray-600 mb-6">Your order has been placed successfully.</p>
     
-    <div className="bg-gray-50 rounded-lg p-6 max-w-md mx-auto text-left">
-      <h3 className="font-semibold text-gray-800 mb-2">Order Details</h3>
-      <p className="text-gray-700"><span className="font-medium">Order ID:</span> {orderId}</p>
-      <p className="text-gray-700"><span className="font-medium">Total Amount:</span> ₵{total.toFixed(2)}</p>
-      <p className="text-gray-700"><span className="font-medium">Payment Method:</span> {
-        paymentMethod === 'paystack' ? 'Credit/Debit Card' : 
-        paymentMethod === 'momo' ? 'Mobile Money' : 'Cash on Delivery'
-      }</p>
-      
-      <div className="mt-4">
-        <h4 className="font-medium text-gray-800">Shipping Address:</h4>
-        <p className="text-gray-700">{shippingInfo.fullName}</p>
-        <p className="text-gray-700">{shippingInfo.address}</p>
-        {shippingInfo.addressLine2 && <p className="text-gray-700">{shippingInfo.addressLine2}</p>}
-        <p className="text-gray-700">{shippingInfo.city}, {shippingInfo.region?.replace('-', ' ')}</p>
-        <p className="text-gray-700">{shippingInfo.phoneNumber}</p>
-      </div>
-      
-      <div className="mt-6 text-center">
-        <Link href="/orders" className="text-[#F68B1E] hover:text-orange-700 font-medium">
-          View My Orders
+    <div className="bg-gray-50 rounded-lg p-4 max-w-md mx-auto mb-6">
+      <p className="text-sm font-medium text-gray-700">Order ID: <span className="text-gray-900">{orderId}</span></p>
+      <p className="text-sm text-gray-600 mt-1">
+        A confirmation email has been sent to <span className="font-medium">{shippingInfo.email}</span>
+      </p>
+    </div>
+    
+    <div className="space-y-4">
+      <Link href="/orders" className="inline-block bg-[#F68B1E] text-white px-6 py-2 rounded-md font-medium hover:bg-[#e67e12] transition-colors">
+        Track Your Order
+      </Link>
+      <div>
+        <Link href="/" className="text-[#F68B1E] hover:underline font-medium">
+          Continue Shopping
         </Link>
       </div>
     </div>
-    
-    <div className="mt-8">
-      <Link href="/all-products" className="bg-[#F68B1E] hover:bg-[#E67E17] text-white py-2 px-6 rounded-md font-medium">
-        Continue Shopping
-      </Link>
-    </div>
   </div>
 )}
-
-</>
-)}
-</div>
-
-{/* Navigation Buttons */}
-{!orderComplete  && (
- <div className="mt-8 flex justify-between">
- {currentStep > 1 && (
-   <button
-     type="button"
-     onClick={prevStep}
-     className="flex items-center text-gray-600 hover:text-gray-800"
-     disabled={isProcessing}
-   >
-     <ArrowLeftIcon className="h-4 w-4 mr-1" />
-     Back
-   </button>
- )}
-    
-    {currentStep < 3 ? (
-      <button
-        type="button"
-        onClick={nextStep}
-        className="bg-[#F68B1E] hover:bg-[#E67E17] text-white py-2 px-6 rounded-md font-medium flex items-center ml-auto"
-      >
-        Continue
-        <ArrowRightIcon className="h-4 w-4 ml-1" />
-      </button>
-    )  : currentStep === 3 && (
-        <button
-          type="button"
-          onClick={submitOrder}
-          disabled={isProcessing}
-          className={`bg-[#F68B1E] hover:bg-[#E67E17] text-white py-2 px-6 rounded-md font-medium flex items-center ml-auto ${isProcessing ? 'opacity-70 cursor-not-allowed' : ''}`}
-        >
-          {isProcessing ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Processing...
-            </>
-          ) : (
-            <>
-              Place Order
-              <ArrowRightIcon className="h-4 w-4 ml-1" />
-            </>
-          )}
-      </button>
-    )}
-  </div>
-)}
-</div>
-
-{/* Right Column - Order Summary */}
-<div className="lg:w-1/3">
-  <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
-    <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
-    
-    {/* Product List */}
-    <div className="max-h-60 overflow-y-auto mb-4">
-    {cart.map((item) => (
-        <div key={item.id} className="flex py-3 border-b border-gray-100 last:border-0">
-          <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-            <img 
-              src={item.image || "https://via.placeholder.com/80"}
-              alt={item.name}
-              className="w-full h-full object-cover"
-            />
+                </>
+              )}
+              
+              {/* Navigation Buttons */}
+              {!orderComplete && !loadingAddress && currentStep < 4 && (
+                <div className="mt-8 flex justify-between">
+                  {currentStep > 1 && (
+                    <button
+                      onClick={prevStep}
+                      className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50"
+                    >
+                      <ArrowLeftIcon className="h-4 w-4 mr-2" /> Back
+                    </button>
+                  )}
+                  
+                  {currentStep < 3 && (
+                    <button
+                      onClick={nextStep}
+                      className={`ml-auto flex items-center px-6 py-2 bg-[#F68B1E] text-white rounded-md font-medium hover:bg-[#e67e12] ${
+                        (currentStep === 1 && (!shippingInfo.fullName || !shippingInfo.phoneNumber || !shippingInfo.address || !shippingInfo.city || !shippingInfo.region || !shippingInfo.email)) ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={currentStep === 1 && (!shippingInfo.fullName || !shippingInfo.phoneNumber || !shippingInfo.address || !shippingInfo.city || !shippingInfo.region || !shippingInfo.email)}
+                    >
+                      Next <ArrowRightIcon className="h-4 w-4 ml-2" />
+                    </button>
+                  )}
+                  
+                  {currentStep === 3 && (
+                    <button
+                      onClick={submitOrder}
+                      className="ml-auto px-6 py-2 bg-[#F68B1E] text-white rounded-md font-medium hover:bg-[#e67e12] flex items-center"
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>Place Order (₵{total.toFixed(2)})</>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="ml-4 flex-grow">
-            <h3 className="text-sm font-medium text-gray-800">{item.name}</h3>
-            <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-            <p className="text-sm font-medium text-gray-900 mt-1">₵{(item.price * item.quantity).toFixed(2)}</p>
+          
+          {/* Right Column - Order Summary */}
+          <div className="lg:w-1/3">
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
+              
+              {/* Cart Items */}
+              <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-3 pb-3 border-b border-gray-100">
+                    <div className="h-14 w-14 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                      {item.image && (
+                        <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-gray-800 truncate">{item.name}</h4>
+                      <p className="text-xs text-gray-500">Quantity: {item.quantity}</p>
+                    </div>
+                    <div className="text-sm font-medium text-gray-800">
+                      ₵{(item.price * item.quantity).toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Price Summary */}
+              <div className="space-y-2 pb-4 border-b border-gray-200">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>₵{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Shipping</span>
+                  <span>₵{shipping.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              {/* Total */}
+              <div className="flex justify-between font-semibold text-lg text-gray-800 mt-4">
+                <span>Total</span>
+                <span>₵{total.toFixed(2)}</span>
+              </div>
+              
+              {/* Secure Checkout Message */}
+              <div className="mt-6 text-xs text-gray-500 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Secure Checkout Powered by Paystack
+              </div>
+            </div>
           </div>
         </div>
-      ))}
-    </div>
-     {/* Totals */}
-     <div className="space-y-2 text-sm">
-      <div className="flex justify-between">
-        <span className="text-gray-600">Subtotal</span>
-        <span className="font-medium">₵{subtotal.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-600">Shipping</span>
-        <span className="font-medium">₵{shipping.toFixed(2)}</span>
-      </div>
-      <div className="border-t border-gray-200 mt-2 pt-2 flex justify-between">
-        <span className="text-gray-800 font-medium">Total</span>
-        <span className="text-xl font-bold text-[#F68B1E]">₵{total.toFixed(2)}</span>
       </div>
     </div>
-    {currentStep <= 3 && (
-      <div className="mt-6">
-        <div className="flex">
-          <input
-            type="text"
-            placeholder="Promo code"
-            className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:ring-[#F68B1E] focus:border-[#F68B1E]"
-          />
-          <button
-            type="button"
-            className="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-r-md hover:bg-gray-300"
-          >
-            Apply
-          </button>
-        </div>
-      </div>
-    )}
-    
-
-  </div>
-</div>
-</div>
-</div>
-</div>
-);
+  );
 };
-{/* Paystack Script Integration */}
-<script
-  dangerouslySetInnerHTML={{
-    __html: `
-      // PaystackPop constructor for handling Paystack payments
-      function PaystackPop() {
-        this.newTransaction = function(options) {
-          const handler = PaystackPop.setup(options);
-          handler.openIframe();
-        };
-      }
-      
-      PaystackPop.setup = function(options) {
-        return {
-          openIframe: function() {
-            // In a real implementation, this would open the Paystack payment modal
-            // Here we'll simulate a successful payment after a brief delay
-            setTimeout(() => {
-              if (typeof options.onSuccess === 'function') {
-                options.onSuccess({
-                  reference: options.ref,
-                  status: 'success',
-                  transaction: options.ref,
-                  message: 'Payment complete!'
-                });
-              }
-            }, 2000);
-          }
-        };
-      };
-    `
-  }}
-/>
 
 export default CheckoutPage;

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FcGoogle } from "react-icons/fc";
+import { RiAdminLine } from "react-icons/ri"; // Import admin icon
 
 const Signup = () => {
   const router = useRouter();
@@ -56,6 +57,11 @@ const Signup = () => {
       setLoading(false);
     }
   };
+
+  // Handle admin login redirect
+  const handleAdminLogin = () => {
+    router.push('/auth/admin');
+  };
   
   // If user needs to complete onboarding
   if (isNewUser && userProfile) {
@@ -85,6 +91,25 @@ const Signup = () => {
           <FcGoogle className="text-xl mr-2" />
           {loading ? 'Processing...' : 'Continue with Google'}
         </button>
+
+        {/* Admin Login Option */}
+        <button 
+          className="flex items-center justify-center w-full mt-4 py-3 border border-gray-300 rounded-lg shadow-sm text-gray-700 font-medium hover:bg-gray-50 transition cursor-pointer"
+          onClick={handleAdminLogin}
+        >
+          <RiAdminLine className="text-xl mr-2" />
+          Login as Super Admin
+        </button>
+
+        {/* Divider */}
+        <div className="relative mt-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">AgriLink © 2025</span>
+          </div>
+        </div>
       </div>
     </div>
   );
