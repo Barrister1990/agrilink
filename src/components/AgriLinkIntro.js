@@ -43,7 +43,7 @@ const AgriLinkIntro = () => {
                 Farm to Table, Simplified
               </p>
               <p className="text-gray-600 text-lg mb-8 max-w-xl">
-                Ghana's premier platform connecting farmers directly to consumers and businesses.
+                Ghana&apos;s premier platform connecting farmers directly to consumers and businesses.
                 Fresh produce, fair prices, and sustainable practices.
               </p>
               
@@ -144,9 +144,9 @@ const AgriLinkIntro = () => {
             </div>
             
             <div className="md:w-2/3">
-              <div className="text-5xl text-green-200">"</div>
+              <div className="text-5xl text-green-200">&apos;</div>
               <p className="text-gray-700 text-lg italic mb-6">
-                AgriLink has transformed our restaurant's supply chain. We now get the freshest produce delivered directly from farms, cutting costs while improving quality. The difference in taste is remarkable!
+                AgriLink has transformed our restaurant&apos;s supply chain. We now get the freshest produce delivered directly from farms, cutting costs while improving quality. The difference in taste is remarkable!
               </p>
               <div className="font-medium text-gray-900">Daniel Fahene Acquaye</div>
               <div className="text-sm text-gray-500">Executive Chef, Agri Impact Group</div>

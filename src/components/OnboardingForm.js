@@ -572,7 +572,7 @@ const OnboardingForm = ({ userProfile }) => {
         return (
           <div className="space-y-4">
             <h3 className="text-xl font-medium text-gray-800">Communication Preferences</h3>
-            <p className="text-sm text-gray-600">Choose how you'd like to hear from us</p>
+            <p className="text-sm text-gray-600">Choose how you&apos;d like to hear from us</p>
             
             <div className="space-y-3">
               <div className="flex items-center">

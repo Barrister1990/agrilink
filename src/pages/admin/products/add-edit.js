@@ -407,7 +407,7 @@ const ProductAddEdit = () => {
                     className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
                   <p className="mt-1 text-sm text-gray-500">
-                    Describe your product's features, benefits, and key selling points
+                    Describe your product&apos;s features, benefits, and key selling points
                   </p>
                 </div>
                 
@@ -424,7 +424,7 @@ const ProductAddEdit = () => {
                     className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
                   <p className="mt-1 text-sm text-gray-500">
-                    One feature per line, e.g., "Freshly harvested for maximum quality"
+                    One feature per line, e.g., &apos;Freshly harvested for maximum quality&apos;
                   </p>
                 </div>
               </div>

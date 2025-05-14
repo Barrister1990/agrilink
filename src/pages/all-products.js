@@ -504,7 +504,7 @@ const AllProducts = () => {
               {searchQuery && searchResults.length === 0 && (
                 <div className="px-4 py-8 text-center text-gray-500">
                   <MagnifyingGlassIcon className="h-8 w-8 mx-auto text-gray-300 mb-2" />
-                  <p className="text-gray-600">No products found for "<span className="font-medium">{searchQuery}</span>"</p>
+                  <p className="text-gray-600">No products found for &apos;<span className="font-medium">{searchQuery}</span>&apos;</p>
                   <p className="text-sm text-gray-500 mt-1">Try checking your spelling or using different keywords</p>
                 </div>
               )}
@@ -617,7 +617,7 @@ const AllProducts = () => {
         {searchQuery && (
           <div className="mb-6 bg-green-50 p-4 rounded-xl shadow-sm border border-green-100">
             <p className="text-green-800">
-              Showing results for: <span className="font-semibold">"{searchQuery}"</span>
+              Showing results for: <span className="font-semibold">&apos;{searchQuery}&apos;</span>
               {selectedCategory !== "All" && (
                 <span> in <span className="font-semibold">{selectedCategory}</span></span>
               )}

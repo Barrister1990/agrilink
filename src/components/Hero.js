@@ -394,7 +394,7 @@ const Hero = ({ onSearch }) => {
               {/* No Results */}
               {searchQuery && searchResults.length === 0 && (
                 <div className="px-4 py-6 text-center text-gray-500">
-                  No products found for "{searchQuery}"
+                  No products found for &apos;{searchQuery}&apos;
                 </div>
               )}
             </div>

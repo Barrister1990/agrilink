@@ -188,7 +188,7 @@ const AddressBook = ({ userId }) => {
         </div>
       ) : addresses.length === 0 ? (
         <div className="bg-white p-12 rounded-xl shadow-md text-center">
-          <p className="text-gray-500 text-lg">You haven't added any addresses yet.</p>
+          <p className="text-gray-500 text-lg">You haven&apos;t added any addresses yet.</p>
           <button
             className="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-300"
             onClick={() => openModal()}

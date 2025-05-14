@@ -73,7 +73,7 @@ const CartModal = ({ isOpen, onClose }) => {
                 <ShoppingBagIcon className="h-12 w-12 text-[#F68B1E]" />
               </div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">Your cart is empty</h3>
-              <p className="text-gray-500 mb-6">Looks like you haven't added any items to your cart yet.</p>
+              <p className="text-gray-500 mb-6">Looks like you haven&apos;t added any items to your cart yet.</p>
               <button 
                 onClick={onClose}
                 className="px-6 py-2.5 bg-[#F68B1E] text-white rounded-full hover:bg-orange-600 transition flex items-center"

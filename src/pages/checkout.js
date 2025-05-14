@@ -538,7 +538,7 @@ const CheckoutPage = () => {
                       {hasDefaultAddress && (
                         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                           <p className="text-sm text-blue-700">
-                            We've pre-filled your default shipping address. You can update it below if needed.
+                            We&apos;ve pre-filled your default shipping address. You can update it below if needed.
                           </p>
                         </div>
                       )}

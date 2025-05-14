@@ -141,18 +141,18 @@ const AboutPage = () => {
           <div className="flex flex-col md:flex-row items-center gap-12 md:gap-16">
             <div className="md:w-1/2">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
-                Revolutionizing Ghana's Agricultural Supply Chain
+                Revolutionizing Ghana&apos;s Agricultural Supply Chain
               </h2>
               
               <div className="space-y-4 text-gray-600">
                 <p>
-                  Founded in 2024, AgriLink is Ghana's premier digital marketplace connecting farmers directly to consumers, eliminating intermediaries and ensuring fair prices for both parties.
+                  Founded in 2024, AgriLink is Ghana&apos;s premier digital marketplace connecting farmers directly to consumers, eliminating intermediaries and ensuring fair prices for both parties.
                 </p>
                 <p>
                   Our platform enables farmers to list their products, set fair prices, and receive direct payments, while consumers enjoy access to fresh produce delivered straight to their doorstep.
                 </p>
                 <p>
-                  We're committed to supporting sustainable farming practices, reducing food waste, and creating economic opportunities throughout Ghana's agricultural sector.
+                  We&apos;re committed to supporting sustainable farming practices, reducing food waste, and creating economic opportunities throughout Ghana&apos;s agricultural sector.
                 </p>
               </div>
               
@@ -228,13 +228,13 @@ const AboutPage = () => {
                   Charles Awuku is a visionary tech entrepreneur and developer with a passion for leveraging technology to solve pressing challenges in Ghana.
                 </p>
                 <p>
-                  After witnessing firsthand the struggles of farmers in rural communities to access fair markets for their produce, Charles founded AgriLink with a mission to transform Ghana's agricultural value chain.
+                  After witnessing firsthand the struggles of farmers in rural communities to access fair markets for their produce, Charles founded AgriLink with a mission to transform Ghana&apos;s agricultural value chain.
                 </p>
                 <p>
                   With a background in software engineering and agricultural economics, Charles has built a platform that not only connects farmers to markets but also provides them with tools to improve productivity and increase their income.
                 </p>
                 <p>
-                  Under his leadership, AgriLink has grown from a small startup to Ghana's leading agricultural marketplace, serving thousands of farmers across the country.
+                  Under his leadership, AgriLink has grown from a small startup to Ghana&apos;s leading agricultural marketplace, serving thousands of farmers across the country.
                 </p>
               </div>
             </div>
@@ -251,7 +251,7 @@ const AboutPage = () => {
               Our Journey
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Milestones in our mission to transform Ghana's agricultural ecosystem
+              Milestones in our mission to transform Ghana&apos;s agricultural ecosystem
             </p>
           </div>
           
@@ -288,7 +288,7 @@ const AboutPage = () => {
                 Get In Touch
               </h2>
               <p className="text-lg text-gray-600 mb-8">
-                Have questions about AgriLink? We'd love to hear from you!
+                Have questions about AgriLink? We&apos;d love to hear from you!
               </p>
               
               <div className="space-y-6">

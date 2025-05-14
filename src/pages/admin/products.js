@@ -312,7 +312,7 @@ const Products = () => {
                 <Search size={24} className="text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900">No products found</h3>
-              <p className="text-gray-500 max-w-sm">Try adjusting your search or filter settings to find what you're looking for.</p>
+              <p className="text-gray-500 max-w-sm">Try adjusting your search or filter settings to find what you&apos;re looking for.</p>
             </div>
           </div>
         )}

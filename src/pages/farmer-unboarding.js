@@ -746,7 +746,7 @@ const FarmerOnboarding = () => {
           <div className="space-y-6">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Tell us about your farm</h2>
-              <p className="text-gray-600">Let's start with the basics about your farm and yourself.</p>
+              <p className="text-gray-600">Let&apos;s start with the basics about your farm and yourself.</p>
             </div>
             
             {isReapplying && (
@@ -904,7 +904,7 @@ const FarmerOnboarding = () => {
         <div className="space-y-6">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Farm Location</h2>
-            <p className="text-gray-600">Please provide details about your farm's location.</p>
+            <p className="text-gray-600">Please provide details about your farm&apos;s location.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1644,7 +1644,7 @@ return (
                <div className="ml-4">
                  <h3 className="text-lg font-medium text-green-800">Application Successfully Submitted</h3>
                  <p className="mt-2 text-green-700">
-                   Thank you for your application! We've sent a confirmation email to {formData.email}.
+                   Thank you for your application! We&apos;ve sent a confirmation email to {formData.email}.
                    Our team will review your application and get back to you within 3-5 business days.
                  </p>
                  <div className="mt-4">
