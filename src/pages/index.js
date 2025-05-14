@@ -27,8 +27,8 @@ export default function Home() {
           property="og:description"
           content="Discover how Agri Link connects local farmers to buyers, improves sales, and reduces post-harvest losses through innovative eCommerce solutions."
         />
-        <meta property="og:url" content="https://agrilink.vercel.app" />
-        <meta property="og:image" content="/logo.png" />
+        <meta property="og:url" content="https://agrilink-taupe.vercel.app/" />
+        <meta property="og:image" content="https://agrilink-taupe.vercel.app/logo.png" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -37,7 +37,7 @@ export default function Home() {
           name="twitter:description"
           content="Agri Link gives local farmers better market access, reduced losses, and more revenue through modern eCommerce tools."
         />
-        <meta name="twitter:image" content="/logo.png" />
+        <meta name="twitter:image" content="https://agrilink-taupe.vercel.app/logo.png" />
 
         {/* Favicon */}
         <link rel="icon" href="/favicon.ico" />

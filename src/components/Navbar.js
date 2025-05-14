@@ -14,6 +14,7 @@ import {
   XMarkIcon
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 
 const Navbar = () => {
@@ -26,6 +27,7 @@ const Navbar = () => {
   const cart = useCartStore((state) => state.cart);
   const accountDropdownRef = useRef(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const router = useRouter();
   
   // Check authentication status on load
   useEffect(() => {
@@ -97,6 +99,20 @@ const Navbar = () => {
     };
   }, [accountOpen]);
 
+  // Close dropdowns on route change
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setAccountOpen(false);
+      setMenuOpen(false);
+    };
+
+    router.events.on('routeChangeStart', handleRouteChange);
+
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange);
+    };
+  }, [router]);
+
   // Handle search action
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -125,6 +141,20 @@ const Navbar = () => {
     } catch (error) {
       console.error("Error logging out:", error.message);
     }
+  };
+
+  // Custom Link component that closes dropdowns on navigation
+  const NavLink = ({ href, children, className }) => {
+    const handleClick = () => {
+      setAccountOpen(false);
+      setMenuOpen(false);
+    };
+
+    return (
+      <Link href={href} onClick={handleClick} className={className}>
+        {children}
+      </Link>
+    );
   };
 
   return (
@@ -164,10 +194,10 @@ const Navbar = () => {
           {/* Right - Account and Cart */}
           <div className="flex items-center gap-5">
             {/* About Us Link - Desktop */}
-            <Link href="/about-us" className="hidden md:flex items-center gap-1.5 text-gray-700 hover:text-[#F68B1E] transition py-2">
+            <NavLink href="/about-us" className="hidden md:flex items-center gap-1.5 text-gray-700 hover:text-[#F68B1E] transition py-2">
               <InformationCircleIcon className="h-6 w-6" />
               <span>About Us</span>
-            </Link>
+            </NavLink>
             
             {/* Account Section */}
             <div className="relative" ref={accountDropdownRef}>
@@ -193,35 +223,35 @@ const Navbar = () => {
 
                   <div className="py-2">
                     {!user ? (
-                      <Link href="/auth/signup" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
+                      <NavLink href="/auth/signup" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
                         <span className="bg-orange-100 p-1.5 rounded-full mr-3">
                           <UserCircleIcon className="h-4 w-4 text-[#F68B1E]" />
                         </span>
                         <span>Sign In / Register</span>
-                      </Link>
+                      </NavLink>
                     ) : null}
                     
-                    <Link href="/account" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
+                    <NavLink href="/account" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
                       <span className="bg-orange-100 p-1.5 rounded-full mr-3">
                         <UserCircleIcon className="h-4 w-4 text-[#F68B1E]" />
                       </span>
                       <span>My Profile</span>
-                    </Link>
-                    <Link href="/orders" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
+                    </NavLink>
+                    <NavLink href="/orders" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
                       <span className="bg-orange-100 p-1.5 rounded-full mr-3">
                         <ShoppingCartIcon className="h-4 w-4 text-[#F68B1E]" />
                       </span>
                       <span>My Orders</span>
-                    </Link>
+                    </NavLink>
                     
                     {/* Farmers Admin Link - Only show if user is authenticated */}
                     {user && (
-                      <Link href="/admin" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
+                      <NavLink href="/admin" className="flex items-center px-4 py-3 hover:bg-orange-50 transition">
                         <span className="bg-orange-100 p-1.5 rounded-full mr-3">
                           <ClipboardDocumentListIcon className="h-4 w-4 text-[#F68B1E]" />
                         </span>
                         <span>Farmers Admin</span>
-                      </Link>
+                      </NavLink>
                     )}
                     
                     {/* Logout Button - Only show if user is authenticated */}
@@ -294,33 +324,33 @@ const Navbar = () => {
 
             <div className="divide-y divide-gray-100">
               {/* About Us Link - Mobile */}
-              <Link href="/about-us" className="flex items-center p-4 hover:bg-orange-50">
+              <NavLink href="/about-us" className="flex items-center p-4 hover:bg-orange-50">
                 <InformationCircleIcon className="h-5 w-5 mr-3 text-[#F68B1E]" />
                 <span>About Us</span>
-              </Link>
+              </NavLink>
               
               {!user ? (
-                <Link href="/auth/signup" className="flex items-center p-4 hover:bg-orange-50">
+                <NavLink href="/auth/signup" className="flex items-center p-4 hover:bg-orange-50">
                   <UserCircleIcon className="h-5 w-5 mr-3 text-[#F68B1E]" />
                   <span>Sign In / Register</span>
-                </Link>
+                </NavLink>
               ) : null}
               
-              <Link href="/account" className="flex items-center p-4 hover:bg-orange-50">
+              <NavLink href="/account" className="flex items-center p-4 hover:bg-orange-50">
                 <UserCircleIcon className="h-5 w-5 mr-3 text-[#F68B1E]" />
                 <span>My Profile</span>
-              </Link>
-              <Link href="/orders" className="flex items-center p-4 hover:bg-orange-50">
+              </NavLink>
+              <NavLink href="/orders" className="flex items-center p-4 hover:bg-orange-50">
                 <ShoppingCartIcon className="h-5 w-5 mr-3 text-[#F68B1E]" />
                 <span>My Orders</span>
-              </Link>
+              </NavLink>
               
               {/* Farmers Admin Link - Mobile (Only show if user is authenticated) */}
               {user && (
-                <Link href="/admin" className="flex items-center p-4 hover:bg-orange-50">
+                <NavLink href="/admin" className="flex items-center p-4 hover:bg-orange-50">
                   <ClipboardDocumentListIcon className="h-5 w-5 mr-3 text-[#F68B1E]" />
                   <span>Farmers Admin</span>
-                </Link>
+                </NavLink>
               )}
               
               {/* Logout Button - Only show if user is authenticated */}
