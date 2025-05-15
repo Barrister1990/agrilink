@@ -26,7 +26,7 @@ const useFlashSaleStore = create((set) => ({
         return {
           id: product.id,
           name: product.name,
-          image: product.imageUrl || product.image,
+          image:product.image,
           originalPrice: originalPrice,
           salePrice: salePrice,
           price: salePrice, // Use salePrice for the price field
