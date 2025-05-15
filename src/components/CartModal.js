@@ -1,15 +1,48 @@
+import { supabase } from "@/lib/supabaseClient";
 import useCartStore from "@/store/cartStore";
 import { ArrowRightIcon, MinusIcon, PlusIcon, ShoppingBagIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 const CartModal = ({ isOpen, onClose }) => {
   const { cart, increaseQuantity, decreaseQuantity, removeFromCart } = useCartStore();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = subtotal > 0 ? 5.99 : 0;
   const total = subtotal + shipping;
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        setIsLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error("Error checking auth status:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  // Handle checkout button click
+  const handleCheckoutClick = () => {
+    if (!isAuthenticated) {
+      router.push("/auth/signup");
+      onClose();
+    } else {
+      router.push("/checkout");
+      onClose();
+    }
+  };
 
   // Close on escape key
   useEffect(() => {
@@ -157,15 +190,26 @@ const CartModal = ({ isOpen, onClose }) => {
               </div>
             </div>
             
+            {/* Authentication notice */}
+            {!isAuthenticated && !isLoading && (
+              <div className="bg-blue-50 text-blue-700 p-3 rounded-md text-sm">
+                Please sign in to complete your purchase
+              </div>
+            )}
+            
             {/* Checkout Buttons */}
             <div className="space-y-2">
-              <Link 
-                href="/checkout" 
-                className="block w-full py-3 bg-[#F68B1E] text-white rounded-full text-center font-medium hover:bg-orange-600 transition"
-                onClick={onClose}
+              <button 
+                onClick={handleCheckoutClick}
+                className={`block w-full py-3 rounded-full text-center font-medium transition ${
+                  isLoading 
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+                    : "bg-[#F68B1E] text-white hover:bg-orange-600"
+                }`}
+                disabled={isLoading}
               >
-                Proceed to Checkout
-              </Link>
+                {isLoading ? "Loading..." : isAuthenticated ? "Proceed to Checkout" : "Sign in to Checkout"}
+              </button>
               <button 
                 onClick={onClose}
                 className="block w-full py-2.5 text-[#F68B1E] bg-white border border-[#F68B1E] rounded-full text-center font-medium hover:bg-orange-50 transition"
