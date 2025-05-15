@@ -249,6 +249,30 @@ const AllProducts = () => {
     addToCart(product);
   };
 
+  // Create skeleton loading cards array for the grid
+  const renderSkeletonCards = () => {
+    const skeletonCount = 8; // Show 8 skeleton cards while loading
+    return Array(skeletonCount).fill().map((_, index) => (
+      <div key={`skeleton-${index}`} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden animate-pulse">
+        {/* Skeleton image */}
+        <div className="w-full pt-[75%] relative bg-gray-200"></div>
+        
+        {/* Skeleton content */}
+        <div className="p-4">
+          {/* Title */}
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+          
+          {/* Price */}
+          <div className="h-5 bg-gray-200 rounded w-1/3 mb-4"></div>
+          
+          {/* Button */}
+          <div className="h-10 bg-gray-200 rounded-lg w-full mt-3"></div>
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <section className="px-4 sm:px-6 lg:px-12 xl:px-20">
       <nav className="text-sm mb-4">
@@ -626,15 +650,10 @@ const AllProducts = () => {
           </div>
         )}
 
-        {/* 📦 Products Grid with Modern Loading */}
+        {/* 📦 Products Grid with Modern Loading - Using Skeleton Cards */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            {/* Amazon/eBay style loading animation */}
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-gray-300 border-t-green-600 rounded-full animate-spin"></div>
-              <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-b-green-600 rounded-full animate-pulse opacity-75"></div>
-            </div>
-            <p className="mt-4 text-gray-600 animate-pulse">Loading products...</p>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {renderSkeletonCards()}
           </div>
         ) : (
           <>
@@ -643,175 +662,183 @@ const AllProducts = () => {
                 paginatedProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all group overflow-hidden"
+                    className="relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all group overflow-hidden flex flex-col"
                   >
                     {/* Discount Badge */}
                     {product.discount > 0 && (
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="inline-flex items-center bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-md">
+                      <div className="absolute top-2 left-2 z-10">
+                        <span className="inline-flex items-center bg-red-500 text-white px-1.5 py-0.5 text-xs font-bold rounded-md">
                           -{product.discount}%
                         </span>
                       </div>
                     )}
 
-                    {/* Quick Add to Cart Button - Appears on Hover */}
-                    <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Quick Add to Cart Button - Desktop Only */}
+                    <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
                       <button
                         onClick={(e) => handleAddToCart(e, product)}
-                        className="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 shadow-md transition-all"
+                        className="bg-green-600 text-white p-1.5 rounded-full hover:bg-green-700 shadow-md transition-all"
                         aria-label="Add to cart"
                       >
                         <ShoppingCartIcon className="h-4 w-4" />
                       </button>
                     </div>
 
-                    {/* Product Image - Wrapped in Link with new route */}
-                    <Link href={`/all-products/${product.id}`} className="block relative pt-[75%] overflow-hidden bg-gray-50">
+                    {/* Product Image - Improved mobile touch target */}
+                    <Link href={`/all-products/${product.id}`} className="block relative pt-[75%] overflow-hidden bg-gray-50 w-full">
                       <img 
                         src={product.image} 
                         alt={product.name} 
                         className="absolute top-0 left-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/placeholder.png";
+                        }}
                       />
                     </Link>
 
-                    {/* Product Details */}
-                    <div className="p-4">
+                 <div className="p-4 flex flex-col flex-1">
                       <Link href={`/all-products/${product.id}`} className="block">
-                        <h3 className="font-medium text-gray-800 group-hover:text-green-700 transition-colors line-clamp-2 min-h-12">
+                        <h3 className="text-sm font-medium mb-1 text-gray-800 line-clamp-2 min-h-[2.5rem] group-hover:text-green-700 transition-colors">
                           {product.name}
                         </h3>
-                        <div className="mt-2 space-y-1">
-                          <div className="flex items-center">
-                            <p className="text-green-700 font-bold">{formatPrice(product.price)}</p>
-                            {product.originalPrice > product.price && (
-                              <p className="text-gray-500 line-through text-sm ml-2">{formatPrice(product.originalPrice)}</p>
-                            )}
-                          </div>
+                        
+                        {/* Stock indicator */}
+                        <div className="mb-2">
+                          {product.stock > 10 ? (
+                            <span className="text-xs text-green-700 font-medium">In Stock</span>
+                          ) : product.stock > 0 ? (
+                            <span className="text-xs text-orange-500 font-medium">Low Stock</span>
+                          ) : (
+                            <span className="text-xs text-red-500 font-medium">Out of Stock</span>
+                          )}
                         </div>
                       </Link>
-
+                      
+                      {/* Price */}
+                      <div className="flex items-center mb-3 mt-auto">
+                        <span className="text-green-700 font-semibold">{formatPrice(product.price)}</span>
+                        {product.originalPrice > product.price && (
+                          <span className="text-gray-500 text-sm line-through ml-2">
+                            {formatPrice(product.originalPrice)}
+                          </span>
+                        )}
+                      </div>
+                      
                       {/* Add to Cart Button */}
                       <button
                         onClick={(e) => handleAddToCart(e, product)}
-                        className="mt-3 w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center group-hover:shadow-md"
+                        disabled={product.stock === 0}
+                        className={`w-full py-2 px-3 rounded-lg text-sm font-medium text-center ${
+                          product.stock === 0
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700 text-white shadow-sm transition-colors"
+                        }`}
                       >
-                        <ShoppingCartIcon className="h-5 w-5 mr-2" />
-                        Add to Cart
+                        {product.stock === 0 ? (
+                          "Out of Stock"
+                        ) : (
+                          <>
+                            <ShoppingCartIcon className="h-4 w-4 inline-block mr-1" />
+                            Add to Cart
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="col-span-full text-center py-12">
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="bg-gray-100 p-6 rounded-full mb-4">
-                      <MagnifyingGlassIcon className="h-12 w-12 text-gray-400" />
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-700">No products found</h3>
-                    <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                      {searchQuery ? 
-                        `We couldn't find any products matching "${searchQuery}"` : 
-                        "No products available in this category"
-                      }
-                    </p>
-                    {searchQuery && (
-                      <button
-                        onClick={clearSearch}
-                        className="mt-4 px-5 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors shadow-sm"
-                      >
-                        Clear Search
-                      </button>
-                    )}
-                  </div>
+                <div className="col-span-full bg-white rounded-xl shadow p-8 text-center">
+                  <MagnifyingGlassIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-800 mb-1">No products found</h3>
+                  <p className="text-gray-500">
+                    {searchQuery 
+                      ? `We couldn't find any products matching '${searchQuery}'` 
+                      : "No products available in this category"}
+                  </p>
+                  {searchQuery && (
+                    <button
+                      onClick={clearSearch}
+                      className="mt-4 text-green-600 hover:text-green-800 font-medium"
+                    >
+                      Clear search
+                    </button>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Enhanced Pagination Controls */}
-            {totalPages > 1 && (
+            {/* Pagination */}
+            {filteredProducts.length > productsPerPage && (
               <div className="mt-8 flex justify-center">
-                <div className="inline-flex rounded-md shadow-sm bg-white overflow-hidden">
-                  {/* Previous Button */}
+                <div className="inline-flex items-center rounded-md shadow">
+                  {/* Previous Page */}
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 md:px-6 py-2 text-sm font-medium border-r border-gray-200 
-                    disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50
-                    text-gray-700 hover:bg-gray-50 disabled:hover:bg-gray-50 transition-colors"
+                    className={`px-3 py-2 rounded-l-md border ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
-                    <span className="sr-only">Previous</span>
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+                    &laquo; Previous
                   </button>
                   
                   {/* Page Numbers */}
-                  <div className="hidden md:flex">
-                    {/* Logic to show limited page numbers with ellipsis */}
-                    {[...Array(totalPages)].map((_, index) => {
-                      const pageNumber = index + 1;
-                      
-                      // Always show first page, last page, current page, and pages adjacent to current
-                      if (
-                        pageNumber === 1 || 
-                        pageNumber === totalPages || 
-                        (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                      ) {
-                        return (
-                          <button
-                            key={pageNumber}
-                            onClick={() => setCurrentPage(pageNumber)}
-                            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border-r border-gray-200
-                            ${currentPage === pageNumber ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-50'} transition-colors`}
-                          >
-                            {pageNumber}
-                          </button>
-                        );
+                  <div className="border-t border-b">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      // Show pages around current page
+                      let pageToShow;
+                      if (totalPages <= 5) {
+                        pageToShow = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageToShow = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageToShow = totalPages - 4 + i;
+                      } else {
+                        pageToShow = currentPage - 2 + i;
                       }
                       
-                      // Show ellipsis for gaps
-                      if (
-                        (pageNumber === 2 && currentPage > 3) || 
-                        (pageNumber === totalPages - 1 && currentPage < totalPages - 2)
-                      ) {
-                        return (
-                          <span
-                            key={pageNumber}
-                            className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 border-r border-gray-200"
-                          >
-                            &hellip;
-                          </span>
-                        );
-                      }
-                      
-                      return null;
+                      return (
+                        <button
+                          key={pageToShow}
+                          onClick={() => setCurrentPage(pageToShow)}
+                          className={`px-4 py-2 border-l border-r ${
+                            currentPage === pageToShow
+                              ? "bg-green-600 text-white font-medium"
+                              : "bg-white text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {pageToShow}
+                        </button>
+                      );
                     })}
                   </div>
                   
-                  {/* Current Page Indicator (Mobile) */}
-                  <div className="md:hidden relative inline-flex items-center px-4 py-2 text-sm font-medium border-r border-gray-200 bg-white">
-                    <span className="text-green-700 font-medium">
-                      {currentPage} / {totalPages}
-                    </span>
-                  </div>
-                  
-                  {/* Next Button */}
+                  {/* Next Page */}
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-4 md:px-6 py-2 text-sm font-medium 
-                    disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50
-                    text-gray-700 hover:bg-gray-50 disabled:hover:bg-gray-50 transition-colors"
+                    className={`px-3 py-2 rounded-r-md border ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
-                    <span className="sr-only">Next</span>
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
+                    Next &raquo;
                   </button>
                 </div>
               </div>
             )}
           </>
+        )}
+        
+    
+        {!loading && filteredProducts.length > 0 && (
+          <div className="mt-6 text-sm text-gray-500 text-center">
+            Showing {startIndex + 1}-{Math.min(startIndex + productsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+          </div>
         )}
       </div>
     </section>
