@@ -549,7 +549,7 @@ const AllProducts = () => {
             </span>
             {searchQuery && (
               <span className="text-sm text-gray-500">
-                for "{searchQuery}"
+                for &apos;{searchQuery}&apos;
               </span>
             )}
           </div>
@@ -572,7 +572,7 @@ const AllProducts = () => {
         {searchQuery && (
           <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-100">
             <p className="text-green-800 font-medium">
-              Results for "{searchQuery}"
+              Results for &apos;{searchQuery}&apos;
               {selectedCategory !== "All" && (
                 <span className="text-green-600"> in {selectedCategory}</span>
               )}
