@@ -1,40 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
-## Getting Started
+# 🌾 Agrlink – Agriculture eCommerce Platform
 
-First, run the development server:
+Agrlink is a powerful agriculture-focused eCommerce web application that connects farmers directly to a ready market. Built to empower local producers and improve the agriculture supply chain, Agrlink offers robust functionality similar to Amazon and eBay, including secure payments, order tracking, and multi-role access.
+
+## 🛠️ Demo Link
+- **Live Link:** [Agrilink](https://agrilink-taupe.vercel.app/)
+
+## 🛠️ Tech Stack
+
+- **Framework:** [Next.js](https://nextjs.org)
+- **Database & Auth:** [Supabase](https://supabase.com)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com)
+- **Payments:** [Paystack](https://paystack.com)
+- **Deployment:** [Vercel](https://vercel.com)
+
+---
+
+## 🚀 Features
+
+### 🧑‍🌾 Public User Side
+- Browse and search for agricultural products
+- Add items to cart and checkout via Paystack
+- Order history and order tracking
+- User authentication and profile management
+
+### 🧑‍🌾 Farmer/Admin Side
+- Login to manage your farm store
+- Add, update, or remove products
+- Monitor orders and deliveries
+- Analytics for sales and product performance
+
+### 🛡️ Super Admin Side (Agrlink)
+- Manage all platform users and roles
+- Moderate farmer registrations and product listings
+- View full platform analytics and reports
+- Handle disputes and support
+
+---
+
+## 📦 Getting Started
+
+To run the project locally:
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+### Optional
+
+```bash
+# with yarn
 yarn dev
-# or
+
+# with pnpm
 pnpm dev
-# or
+
+# with bun
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## 📂 Project Structure
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+```bash
+/pages           # Next.js pages (routes)
+/components      # Reusable UI components
+/store           # Global state management (e.g. Zustand)
+/lib             # Supabase client & utilities
+/styles          # Tailwind CSS configs
+/public          # Static assets (images, icons)
+/api             # API routes (e.g. for orders, auth)
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Environment Variables
 
-## Learn More
+Create a `.env.local` file with your credentials:
 
-To learn more about Next.js, take a look at the following resources:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your-paystack-public-key
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📦 Deployment
 
-## Deploy on Vercel
+This project is ready for deployment on **Vercel**:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Push to GitHub
+- Connect the repo to Vercel
+- Set environment variables in Vercel dashboard
+- Deploy and you're live!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+Read more: [Next.js Deployment Docs](https://nextjs.org/docs/pages/building-your-application/deploying)
+
+---
+
+## 📈 Roadmap
+
+- ✅ Role-based access (User, Farmer, Super Admin)
+- ✅ Secure checkout with Paystack
+- ✅ Order tracking & status updates
+- 🚧 Mobile app (planned)
+- 🚧 Chat support between users and sellers
+- 🚧 Delivery agent dashboard
+
+---
+
+## 🙌 Contributing
+
+Contributions are welcome! Fork the repository, create a feature branch, and submit a PR.
+
+```bash
+git checkout -b feature/your-feature
+git commit -m "Add your feature"
+git push origin feature/your-feature
+```
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+## 👨🏽‍💻 Author
+
+**Agrlink by Charles Awuku**  
+Made with ❤️ to support African farmers and promote sustainable agriculture.
